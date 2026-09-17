@@ -3,520 +3,632 @@ import requests
 import time
 import json
 
-# --- CONFIGURATION ---
+# =====================================================================
+# CONFIGURATION
+# =====================================================================
 API_BASE_URL = "http://127.0.0.1:8000"
 PREDICT_ENDPOINT = f"{API_BASE_URL}/predict"
 
-# --- CSS STYLES ---
-def inject_css():
-    st.markdown("""
-    <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+DEVELOPER_NAME = "Aniket Sharma"
+LINKEDIN_URL = "https://www.linkedin.com/in/aniket-sharma-42a700418?utm_source=share_via&utm_content=profile&utm_medium=member_android"
+GITHUB_URL = "https://github.com/aniket-andyy"
 
-    /* Global Reset & Background */
-    * {
-        box-sizing: border-box;
-    }
-    body, .stApp, .glass-card, .sys-card, .meta-item, .dev-card {
+
+# =====================================================================
+# CSS  (Dark Glassmorphism · Mobile-First · No broken widgets)
+# =====================================================================
+def inject_css():
+    st.markdown(
+        """
+    <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+    /* ---------- Global ---------- */
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { overflow-x: hidden; max-width: 100%; }
+    body, p, h1, h2, h3, h4, span, div, label, li, code, pre {
         overflow-wrap: normal;
         word-break: normal;
         white-space: normal;
     }
-    
     .stApp {
-        background: #05050A;
-        background-image: radial-gradient(circle at 50% 0%, rgba(0, 242, 254, 0.08) 0%, transparent 50%),
-                          radial-gradient(circle at 100% 100%, rgba(176, 102, 254, 0.05) 0%, transparent 50%);
+        background: #05060B;
+        background-image:
+            radial-gradient(circle at 50% -10%, rgba(0, 194, 255, 0.10) 0%, transparent 55%),
+            radial-gradient(circle at 100% 100%, rgba(124, 92, 255, 0.07) 0%, transparent 50%);
         color: #E2E8F0;
         font-family: 'Inter', system-ui, -apple-system, sans-serif;
         overflow-x: hidden;
     }
 
-    /* Hide Streamlit defaults */
-    header[data-testid="stHeader"], 
-    footer, 
-    #MainMenu, 
-    .stDeployButton, 
-    div[data-testid="stSidebarNav"],
-    div[data-testid="collapsedControl"] {
-        display: none !important;
-    }
-    section[data-testid="stSidebar"] {
-        display: none !important;
-    }
+    /* ---------- Hide Streamlit chrome ---------- */
+    header[data-testid="stHeader"], footer, #MainMenu, .stDeployButton { display: none !important; }
+    section[data-testid="stSidebar"], div[data-testid="collapsedControl"] { display: none !important; }
+
+    /* Main container: real padding so NOTHING touches screen edges */
     .block-container {
-        padding: 0 !important;
-        max-width: 100% !important;
+        padding-top: 0.75rem !important;
+        padding-left: clamp(14px, 4vw, 32px) !important;
+        padding-right: clamp(14px, 4vw, 32px) !important;
+        padding-bottom: 2rem !important;
+        max-width: 1160px !important;
     }
 
-    /* Glass Card */
+    /* ---------- Glass primitives ---------- */
     .glass-card {
-        background: rgba(20, 25, 40, 0.4);
+        background: rgba(18, 22, 36, 0.55);
         backdrop-filter: blur(16px);
         -webkit-backdrop-filter: blur(16px);
         border: 1px solid rgba(255, 255, 255, 0.08);
-        border-radius: 24px;
-        padding: clamp(16px, 4vw, 32px);
-        margin-bottom: 24px;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        border-radius: 20px;
+        padding: clamp(16px, 4vw, 28px);
+        margin-bottom: 20px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
         width: 100%;
         max-width: 100%;
     }
 
-    /* Top Nav */
+    /* ---------- Top navigation ---------- */
     .top-nav {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 16px clamp(16px, 4vw, 40px);
-        background: rgba(15, 20, 35, 0.6);
-        backdrop-filter: blur(12px);
-        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-        margin-bottom: 24px;
-        flex-wrap: wrap;
         gap: 12px;
+        flex-wrap: wrap;
+        padding: 12px clamp(14px, 3vw, 22px);
+        background: rgba(13, 17, 30, 0.72);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 16px;
+        margin-bottom: clamp(20px, 5vw, 40px);
         position: sticky;
-        top: 0;
-        z-index: 100;
+        top: 8px;
+        z-index: 999;
     }
+    .nav-left { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
     .nav-logo {
-        font-size: clamp(1.2rem, 4vw, 1.5rem);
+        font-size: clamp(1.05rem, 4vw, 1.35rem);
         font-weight: 800;
-        background: linear-gradient(90deg, #00f2fe, #4facfe);
+        letter-spacing: -0.3px;
+        background: linear-gradient(90deg, #00c2ff, #6ea8ff);
         -webkit-background-clip: text;
+        background-clip: text;
         -webkit-text-fill-color: transparent;
         white-space: nowrap;
     }
+    .nav-dev { font-size: 0.72rem; color: #7C8BA1; white-space: nowrap; }
+    .nav-dev a { color: #9FB6D4; text-decoration: none; font-weight: 600; }
+    .nav-dev a:hover { color: #00c2ff; }
+    .nav-right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .nav-chip {
+        display: inline-flex; align-items: center; justify-content: center;
+        width: 30px; height: 30px; border-radius: 9px;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        color: #9FB6D4; text-decoration: none;
+        font-size: 0.72rem; font-weight: 700;
+        transition: all 0.25s ease;
+    }
+    .nav-chip:hover { background: rgba(0, 194, 255, 0.15); color: #00c2ff; border-color: rgba(0,194,255,0.4); }
     .status-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        padding: 6px 14px;
-        border-radius: 50px;
-        font-size: 0.85rem;
-        font-weight: 600;
-        white-space: nowrap;
+        display: inline-flex; align-items: center; gap: 7px;
+        padding: 6px 12px; border-radius: 50px;
+        font-size: 0.78rem; font-weight: 700; white-space: nowrap;
     }
-    .pulse {
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        display: inline-block;
-        animation: pulse-anim 2s infinite;
-    }
+    .pulse { width: 7px; height: 7px; border-radius: 50%; display: inline-block; animation: pulse-anim 2s infinite; }
     @keyframes pulse-anim {
-        0% { box-shadow: 0 0 0 0 rgba(0, 255, 136, 0.7); }
-        70% { box-shadow: 0 0 0 10px rgba(0, 255, 136, 0); }
+        0%   { box-shadow: 0 0 0 0 rgba(0, 255, 136, 0.55); }
+        70%  { box-shadow: 0 0 0 8px rgba(0, 255, 136, 0); }
         100% { box-shadow: 0 0 0 0 rgba(0, 255, 136, 0); }
     }
 
-    /* Hero */
-    .hero {
-        text-align: center;
-        padding: clamp(40px, 10vw, 100px) clamp(16px, 4vw, 40px);
-        max-width: 900px;
-        margin: 0 auto;
-    }
+    /* ---------- Hero ---------- */
+    .hero { text-align: center; padding: clamp(28px, 7vw, 80px) 0 clamp(24px, 5vw, 56px); }
     .hero h1 {
-        font-size: clamp(2.5rem, 8vw, 5rem);
-        font-weight: 900;
-        line-height: 1.1;
-        margin-bottom: 16px;
-        background: linear-gradient(135deg, #ffffff 0%, #00f2fe 50%, #b066fe 100%);
-        -webkit-background-clip: text;
+        font-size: clamp(2.1rem, 7vw, 4.2rem);
+        font-weight: 900; line-height: 1.08; letter-spacing: -1.5px;
+        margin: 0 0 14px 0;
+        background: linear-gradient(135deg, #ffffff 0%, #7dd6ff 55%, #8f7bff 100%);
+        -webkit-background-clip: text; background-clip: text;
         -webkit-text-fill-color: transparent;
-        letter-spacing: -1px;
     }
     .hero p {
-        font-size: clamp(1rem, 2.5vw, 1.25rem);
-        color: #94a3b8;
-        max-width: 600px;
-        margin: 0 auto 24px auto;
-        line-height: 1.6;
+        font-size: clamp(0.95rem, 2.4vw, 1.15rem);
+        color: #94A3B8; line-height: 1.65;
+        max-width: 640px; margin: 0 auto 22px auto;
     }
-    .badge-container {
-        display: flex;
-        justify-content: center;
-        flex-wrap: wrap;
-        gap: 12px;
-    }
+    .badge-container { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; }
     .badge {
-        background: rgba(0, 242, 254, 0.1);
-        border: 1px solid rgba(0, 242, 254, 0.3);
-        color: #00f2fe;
-        padding: 6px 16px;
-        border-radius: 50px;
-        font-size: 0.85rem;
-        font-weight: 600;
-        white-space: nowrap;
+        background: rgba(0, 194, 255, 0.08);
+        border: 1px solid rgba(0, 194, 255, 0.28);
+        color: #6FD6FF; padding: 6px 14px; border-radius: 50px;
+        font-size: 0.78rem; font-weight: 600; white-space: nowrap;
     }
 
-    /* Section Headings */
+    /* ---------- Section headings ---------- */
     .section-title {
-        font-size: clamp(1.5rem, 5vw, 2.5rem);
-        font-weight: 800;
-        margin-bottom: 8px;
-        color: #ffffff;
-        letter-spacing: -0.5px;
+        font-size: clamp(1.4rem, 4.5vw, 2.1rem);
+        font-weight: 800; color: #fff; letter-spacing: -0.5px;
+        margin: 0 0 6px 0;
     }
     .section-subtitle {
-        color: #94a3b8;
-        font-size: clamp(0.9rem, 2vw, 1.1rem);
-        margin-bottom: 24px;
-        line-height: 1.5;
+        color: #94A3B8; font-size: clamp(0.88rem, 2.2vw, 1rem);
+        line-height: 1.55; margin: 0 0 20px 0;
     }
-    .content-wrapper {
-        max-width: 1100px;
-        margin: 0 auto;
-        padding: 0 clamp(16px, 4vw, 40px);
-    }
+    .section-gap { margin-top: clamp(36px, 7vw, 72px); }
 
-    /* Prediction Form Tweaks */
+    /* ---------- FORM = the glass card (real padding, never edge-to-edge) ---------- */
     div[data-testid="stForm"] {
-        background: transparent !important;
-        border: none !important;
-        padding: 0 !important;
+        background: rgba(18, 22, 36, 0.55) !important;
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        border-radius: 20px !important;
+        padding: clamp(16px, 4vw, 28px) !important;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
     }
-    div[data-testid="stForm"] button {
-        background: linear-gradient(90deg, #00f2fe, #4facfe) !important;
-        color: #05050A !important;
-        font-weight: 700 !important;
-        border: none !important;
-        border-radius: 16px !important;
-        padding: 16px 24px !important;
-        font-size: 1.1rem !important;
-        width: 100% !important;
-        transition: all 0.3s ease !important;
-        box-shadow: 0 4px 20px rgba(0, 242, 254, 0.3) !important;
-        min-height: 54px !important;
-        margin-top: 16px !important;
-    }
-    div[data-testid="stForm"] button:hover {
-        transform: translateY(-2px) !important;
-        box-shadow: 0 8px 30px rgba(0, 242, 254, 0.5) !important;
-    }
-    
-    /* Streamlit Input Overrides */
-    div[data-baseweb="input"] input, 
-    div[data-baseweb="select"] div, 
-    .stNumberInput input,
-    div[data-baseweb="select"] input {
-        background: rgba(255, 255, 255, 0.03) !important;
-        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+
+    /* ---------- Widget skin: text & number inputs ---------- */
+    .stTextInput input, .stNumberInput input, .stTextArea textarea {
+        background: rgba(255, 255, 255, 0.045) !important;
+        border: 1px solid rgba(255, 255, 255, 0.12) !important;
         border-radius: 12px !important;
-        color: #ffffff !important;
-        min-height: 44px !important;
+        color: #F1F5F9 !important;
+        min-height: 46px;
+        padding: 10px 14px !important;
+        font-size: 0.95rem;
     }
-    div[data-baseweb="input"] input:focus, 
-    div[data-baseweb="select"] div:focus-within,
-    .stNumberInput input:focus {
-        border-color: #00f2fe !important;
-        box-shadow: 0 0 0 2px rgba(0, 242, 254, 0.2) !important;
-    }
-    label, .st-emotion-cache-16idsys p, div[data-testid="stWidgetLabel"] {
-        color: #cbd5e1 !important;
-        font-weight: 500 !important;
+    .stTextInput input:focus, .stNumberInput input:focus {
+        border-color: rgba(0, 194, 255, 0.65) !important;
+        box-shadow: 0 0 0 3px rgba(0, 194, 255, 0.15) !important;
     }
 
-    /* Responsive Columns Fix */
-    @media (max-width: 768px) {
-        div[data-testid="column"] {
-            width: 100% !important;
+    /* ---------- Widget skin: selectbox control ---------- */
+    div[data-baseweb="select"] > div {
+        background: rgba(255, 255, 255, 0.045) !important;
+        border: 1px solid rgba(255, 255, 255, 0.12) !important;
+        border-radius: 12px !important;
+        min-height: 46px;
+    }
+    div[data-baseweb="select"] > div:hover { border-color: rgba(0, 194, 255, 0.45) !important; }
+    div[data-baseweb="select"] div, div[data-baseweb="select"] span { color: #F1F5F9 !important; font-size: 0.95rem; }
+    div[data-baseweb="select"] svg { fill: #7C8BA1 !important; }
+    ul[role="listbox"] {
+        background: #0D1220 !important;
+        border: 1px solid rgba(255, 255, 255, 0.12) !important;
+        border-radius: 12px !important;
+    }
+    ul[role="listbox"] li { color: #E2E8F0 !important; }
+    ul[role="listbox"] li:hover { background: rgba(0, 194, 255, 0.12) !important; }
+
+    /* ---------- Neutral dark style for INTERNAL widget buttons
+       (number steppers, select toggles) — never gradient ---------- */
+    div[data-testid="stNumberInput"] button,
+    div[data-baseweb="select"] button,
+    div[data-testid="stSelectbox"] button {
+        background: rgba(255, 255, 255, 0.07) !important;
+        color: #CBD5E1 !important;
+        border: none !important;
+        box-shadow: none !important;
+        width: auto !important;
+        min-height: 0 !important;
+        padding: 5px 9px !important;
+        border-radius: 9px !important;
+        font-size: 0.85rem !important;
+        font-weight: 600 !important;
+    }
+    div[data-testid="stNumberInput"] button:hover,
+    div[data-baseweb="select"] button:hover { background: rgba(255, 255, 255, 0.14) !important; }
+
+    /* ---------- Labels ---------- */
+    .stTextInput label, .stNumberInput label, div[data-testid="stWidgetLabel"] p,
+    .stSelectbox label, label { color: #C3CEDD !important; font-weight: 600 !important; font-size: 0.86rem !important; }
+
+    /* ---------- THE CTA (form submit only) ---------- */
+    div[data-testid="stFormSubmitContainer"] { margin-top: 8px; }
+    div[data-testid="stFormSubmitContainer"] button,
+    div[data-testid="stForm"] button[kind="secondaryFormSubmit"],
+    div[data-testid="stForm"] button[kind="primaryFormSubmit"] {
+        background: linear-gradient(135deg, #00c2ff 0%, #4f8cff 55%, #7c5cff 100%) !important;
+        color: #04101C !important;
+        border: none !important;
+        border-radius: 14px !important;
+        min-height: 52px !important;
+        width: 100% !important;
+        font-weight: 800 !important;
+        font-size: 1.02rem !important;
+        letter-spacing: 0.2px;
+        box-shadow: 0 8px 24px rgba(0, 194, 255, 0.22) !important;
+        transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+    }
+    div[data-testid="stFormSubmitContainer"] button p,
+    div[data-testid="stForm"] button[kind="secondaryFormSubmit"] p { color: #04101C !important; font-weight: 800 !important; }
+    div[data-testid="stFormSubmitContainer"] button:hover {
+        transform: translateY(-1px);
+        filter: brightness(1.06);
+        box-shadow: 0 12px 32px rgba(0, 194, 255, 0.32) !important;
+    }
+
+    /* ---------- Responsive: stack Streamlit columns ---------- */
+    @media (max-width: 980px) {
+        div[data-testid="stHorizontalBlock"] { flex-wrap: wrap !important; gap: 0.5rem !important; }
+        div[data-testid="stHorizontalBlock"] > div[data-testid="column"],
+        div[data-testid="stHorizontalBlock"] > .stColumn {
             flex: 1 1 100% !important;
-            min-width: 100% !important;
-            padding-left: 0 !important;
-            padding-right: 0 !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            min-width: 0 !important;
+            padding: 0 !important;
         }
-        div[data-testid="stHorizontalBlock"] {
-            flex-direction: column !important;
-            gap: 0 !important;
-        }
-        .top-nav {
-            justify-content: center;
-            text-align: center;
-        }
+    }
+    @media (max-width: 480px) {
+        .nav-chip { display: none; }
+        .top-nav { padding: 10px 14px; }
+        div[data-testid="stForm"] { padding: 16px 14px !important; }
     }
 
-    /* Result Card */
+    /* ---------- Result card ---------- */
+    .result-card { text-align: center; border-color: rgba(0, 194, 255, 0.28); }
+    .result-eyebrow {
+        color: #8CA3BF; letter-spacing: 2.5px; font-size: 0.78rem;
+        font-weight: 700; text-transform: uppercase; margin: 0 0 6px 0;
+    }
     .result-price {
-        font-size: clamp(2.5rem, 10vw, 4.5rem);
-        font-weight: 900;
-        background: linear-gradient(90deg, #00f2fe, #b066fe);
-        -webkit-background-clip: text;
+        font-size: clamp(2.4rem, 9vw, 4rem);
+        font-weight: 900; line-height: 1.05; margin: 6px 0 2px 0;
+        background: linear-gradient(90deg, #00c2ff, #8f7bff);
+        -webkit-background-clip: text; background-clip: text;
         -webkit-text-fill-color: transparent;
-        margin: 16px 0;
-        line-height: 1;
     }
-    .result-meta {
-        display: flex;
-        justify-content: center;
-        flex-wrap: wrap;
-        gap: 16px;
-        margin-top: 24px;
-    }
+    .result-sub { color: #94A3B8; font-size: clamp(0.9rem, 2.4vw, 1.05rem); font-weight: 600; margin: 0 0 18px 0; }
+    .result-meta { display: flex; justify-content: center; flex-wrap: wrap; gap: 12px; }
     .meta-item {
         background: rgba(255, 255, 255, 0.05);
-        padding: 12px 20px;
-        border-radius: 12px;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        text-align: center;
-        min-width: 140px;
-        flex: 1 1 140px;
-        max-width: 250px;
+        border: 1px solid rgba(255, 255, 255, 0.10);
+        border-radius: 14px; padding: 12px 18px;
+        flex: 1 1 150px; max-width: 260px; min-width: 140px;
     }
-    .meta-label {
-        font-size: 0.8rem;
-        color: #64748b;
-        margin-bottom: 4px;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
+    .meta-label { font-size: 0.68rem; color: #7C8BA1; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; margin-bottom: 4px; }
+    .meta-value { font-size: 0.95rem; font-weight: 700; color: #E8EEF6; }
+
+    /* ---------- Error card ---------- */
+    .error-card {
+        background: rgba(255, 82, 82, 0.06);
+        border: 1px solid rgba(255, 82, 82, 0.32);
+        border-radius: 20px; padding: clamp(18px, 4vw, 28px);
+        margin-top: 20px;
     }
-    .meta-value {
-        font-size: 1rem;
-        font-weight: 600;
-        color: #e2e8f0;
+    .error-card h3 { color: #FF7B7B; margin: 0 0 10px 0; font-size: clamp(1.05rem, 3vw, 1.3rem); }
+    .error-card p { color: #C9D4E3; font-size: 0.92rem; line-height: 1.6; margin: 6px 0; }
+    .error-card code {
+        background: rgba(0, 0, 0, 0.45); color: #FFB3B3;
+        padding: 3px 8px; border-radius: 6px; font-size: 0.82rem;
+        word-break: break-all;
     }
 
-    /* System Grid */
-    .system-grid {
+    /* ---------- Info grids (system / ml) ---------- */
+    .info-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 20px;
-        margin-top: 24px;
+        grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+        gap: 14px;
     }
-    .sys-card {
-        background: rgba(20, 25, 40, 0.4);
+    .info-card {
+        background: rgba(18, 22, 36, 0.55);
         border: 1px solid rgba(255, 255, 255, 0.08);
         border-radius: 16px;
-        padding: 24px;
-        text-align: center;
-        transition: transform 0.3s ease, border-color 0.3s ease;
+        padding: 20px 18px;
+        transition: transform 0.25s ease, border-color 0.25s ease;
+        min-width: 0;
     }
-    .sys-card:hover {
-        transform: translateY(-4px);
-        border-color: rgba(0, 242, 254, 0.3);
-    }
-    .sys-icon {
-        font-size: 2rem;
-        margin-bottom: 12px;
-    }
-    .sys-title {
-        font-size: 0.85rem;
-        color: #94a3b8;
-        margin-bottom: 8px;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-    .sys-value {
-        font-size: 1.25rem;
-        font-weight: 700;
-        color: #ffffff;
-    }
+    .info-card:hover { transform: translateY(-3px); border-color: rgba(0, 194, 255, 0.30); }
+    .info-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-bottom: 12px; }
+    .info-title { font-size: 0.72rem; color: #7C8BA1; text-transform: uppercase; letter-spacing: 1.2px; font-weight: 700; margin-bottom: 6px; }
+    .info-value { font-size: 1.05rem; font-weight: 700; color: #F1F5F9; }
 
-    /* Code Block */
-    .code-container {
-        background: #0B0F19;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 12px;
+    /* ---------- API code block ---------- */
+    .code-shell {
+        background: #0A0E1A;
+        border: 1px solid rgba(255, 255, 255, 0.10);
+        border-radius: 14px;
         padding: 16px;
-        overflow-x: auto;
-        margin-top: 16px;
+        overflow-x: auto;              /* code may scroll, page may not */
+        max-width: 100%;
     }
-    .code-container pre {
-        margin: 0;
-        color: #00f2fe;
-        font-family: 'Fira Code', 'Courier New', monospace;
-        font-size: 0.9rem;
-        line-height: 1.5;
+    .code-shell pre {
+        margin: 0; color: #9FE4FF;
+        font-family: 'SFMono-Regular', Consolas, 'Courier New', monospace;
+        font-size: 0.85rem; line-height: 1.6; white-space: pre;
     }
+    .method-pill {
+        display: inline-block; background: rgba(0, 255, 136, 0.12);
+        color: #4ADE80; border: 1px solid rgba(0, 255, 136, 0.30);
+        padding: 5px 12px; border-radius: 8px;
+        font-weight: 800; font-family: monospace; font-size: 0.85rem;
+    }
+    .endpoint-path { font-family: monospace; font-size: 1rem; color: #E8EEF6; font-weight: 600; }
 
-    /* Developer Section */
+    /* ---------- Developer ---------- */
     .dev-card {
         text-align: center;
-        padding: clamp(24px, 5vw, 48px);
-        background: linear-gradient(135deg, rgba(0, 242, 254, 0.05), rgba(176, 102, 254, 0.05));
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: linear-gradient(135deg, rgba(0, 194, 255, 0.06), rgba(124, 92, 255, 0.06));
+        border: 1px solid rgba(255, 255, 255, 0.10);
         border-radius: 24px;
-        margin-bottom: 40px;
+        padding: clamp(24px, 5vw, 44px) clamp(16px, 4vw, 32px);
     }
     .dev-avatar {
-        width: 80px;
-        height: 80px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, #00f2fe, #b066fe);
-        margin: 0 auto 20px auto;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 2.5rem;
-        color: #05050A;
-        box-shadow: 0 0 30px rgba(0, 242, 254, 0.4);
+        width: 76px; height: 76px; border-radius: 50%;
+        background: linear-gradient(135deg, #00c2ff, #7c5cff);
+        margin: 0 auto 16px auto;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.6rem; font-weight: 900; color: #04101C;
+        box-shadow: 0 0 34px rgba(0, 194, 255, 0.35);
     }
-    .dev-links {
-        display: flex;
-        justify-content: center;
-        flex-wrap: wrap;
-        gap: 16px;
-        margin-top: 24px;
-    }
+    .dev-links { display: flex; justify-content: center; flex-wrap: wrap; gap: 12px; margin-top: 22px; }
     .dev-btn {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        padding: 12px 24px;
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        border-radius: 12px;
-        color: #00f2fe;
-        text-decoration: none;
-        font-weight: 600;
-        transition: all 0.3s ease;
-        min-width: 140px;
-        justify-content: center;
+        display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+        padding: 12px 26px; min-height: 46px; min-width: 150px;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        border-radius: 12px; color: #6FD6FF;
+        text-decoration: none; font-weight: 700; font-size: 0.92rem;
+        transition: all 0.25s ease;
     }
-    .dev-btn:hover {
-        background: rgba(0, 242, 254, 0.1);
-        border-color: #00f2fe;
-        transform: translateY(-2px);
-    }
+    .dev-btn:hover { background: rgba(0, 194, 255, 0.12); border-color: rgba(0,194,255,0.5); transform: translateY(-2px); }
 
-    /* Footer */
+    /* ---------- Footer ---------- */
     .glass-footer {
-        text-align: center;
-        padding: 40px 20px;
-        border-top: 1px solid rgba(255, 255, 255, 0.05);
-        color: #64748b;
-        font-size: 0.85rem;
-        margin-top: 40px;
+        text-align: center; padding: 34px 16px 20px;
+        border-top: 1px solid rgba(255, 255, 255, 0.06);
+        margin-top: clamp(40px, 7vw, 70px);
+        color: #64748B; font-size: 0.82rem; line-height: 1.8;
     }
-    .footer-links {
-        margin-top: 16px;
-    }
-    .footer-links a {
-        color: #00f2fe;
-        text-decoration: none;
-        margin: 0 10px;
-    }
-
-    /* Error Card */
-    .error-card {
-        background: rgba(255, 68, 68, 0.05);
-        border: 1px solid rgba(255, 68, 68, 0.3);
-        text-align: center;
-        padding: 24px;
-        border-radius: 20px;
-        margin-top: 24px;
-    }
-    .error-card h3 { color: #ff4444; margin-bottom: 12px; }
-    .error-card code {
-        background: rgba(0,0,0,0.4);
-        color: #ff9999;
-        padding: 4px 8px;
-        border-radius: 6px;
-        font-size: 0.9rem;
-    }
+    .glass-footer strong { color: #E2E8F0; }
+    .glass-footer a { color: #6FD6FF; text-decoration: none; }
+    .glass-footer a:hover { text-decoration: underline; }
     </style>
-    """, unsafe_allow_html=True)
+    """,
+        unsafe_allow_html=True,
+    )
 
-# --- API HELPERS ---
-def check_api_health():
+
+# =====================================================================
+# API HELPERS
+# =====================================================================
+@st.cache_data(ttl=30, show_spinner=False)
+def check_api_health() -> bool:
+    """Ping the FastAPI backend. Never raises."""
     try:
-        res = requests.get(f"{API_BASE_URL}/", timeout=3)
-        return res.status_code in [200, 404, 307, 405]
+        res = requests.get(f"{API_BASE_URL}/", timeout=4)
+        return res.status_code < 500
+    except requests.exceptions.ConnectionError:
+        return False
+    except requests.exceptions.Timeout:
+        return False
     except Exception:
         return False
 
-def predict_car_price(data):
-    start_time = time.time()
+
+def predict_car_price(payload: dict) -> dict:
+    """POST to /predict with full error handling. Never raises."""
+    start = time.time()
     try:
-        res = requests.post(PREDICT_ENDPOINT, json=data, timeout=10)
-        elapsed = int((time.time() - start_time) * 1000)
-        if res.status_code == 200:
-            return {"success": True, "data": res.json(), "time": elapsed}
-        else:
-            return {"success": False, "error": f"HTTP {res.status_code}", "details": res.text, "time": elapsed}
+        res = requests.post(PREDICT_ENDPOINT, json=payload, timeout=15)
+        elapsed = int((time.time() - start) * 1000)
+
+        if res.status_code != 200:
+            return {
+                "success": False,
+                "error": f"HTTP {res.status_code}",
+                "details": res.text[:300],
+                "time": elapsed,
+            }
+        try:
+            data = res.json()
+        except ValueError:
+            return {
+                "success": False,
+                "error": "Invalid JSON",
+                "details": "The API responded with non-JSON content.",
+                "time": elapsed,
+            }
+        if not isinstance(data, dict):
+            return {
+                "success": False,
+                "error": "Unexpected response shape",
+                "details": str(data)[:200],
+                "time": elapsed,
+            }
+        return {"success": True, "data": data, "time": elapsed}
+
     except requests.exceptions.ConnectionError:
-        return {"success": False, "error": "Connection Error", "details": "Cannot reach API. Ensure FastAPI is running.", "time": 0}
+        return {
+            "success": False,
+            "error": "ConnectionError",
+            "details": "The server refused the connection.",
+            "time": 0,
+        }
     except requests.exceptions.Timeout:
-        return {"success": False, "error": "Timeout", "details": "The server took too long to respond.", "time": 0}
-    except Exception as e:
-        return {"success": False, "error": str(e), "details": "An unexpected error occurred.", "time": 0}
+        return {
+            "success": False,
+            "error": "Timeout",
+            "details": "The server took too long to respond.",
+            "time": 0,
+        }
+    except Exception as exc:  # noqa: BLE001
+        return {
+            "success": False,
+            "error": type(exc).__name__,
+            "details": str(exc)[:200],
+            "time": 0,
+        }
 
-# --- RENDER FUNCTIONS ---
-def render_header(is_online):
-    status_color = "#00ff88" if is_online else "#ff4444"
-    status_text = "Online" if is_online else "Offline"
-    
-    st.markdown(f"""
-    <div class="top-nav">
-        <div class="nav-logo">AutoPrice AI</div>
-        <div class="status-badge" style="background: {status_color}15; border: 1px solid {status_color}40; color: {status_color};">
-            <span class="pulse" style="background: {status_color};"></span>
-            API {status_text}
+
+def handle_api_error(result: dict) -> None:
+    """Render a clean glassmorphic error card instead of crashing."""
+    st.markdown(
+        f"""
+        <div class="error-card">
+            <h3>⚠️ Unable to connect to AutoPrice API</h3>
+            <p><strong>Error:</strong> {result.get('error', 'Unknown error')}</p>
+            <p><strong>Detail:</strong> {result.get('details', '-')}</p>
+            <p><strong>API URL:</strong> <code>{PREDICT_ENDPOINT}</code></p>
+            <p><strong>Suggested action:</strong> Make sure FastAPI is running on
+               <code>{API_BASE_URL}</code> (e.g. <code>uvicorn main:app --reload</code>).</p>
         </div>
-    </div>
-    """, unsafe_allow_html=True)
+        """,
+        unsafe_allow_html=True,
+    )
 
-def render_hero():
-    st.markdown("""
-    <div class="hero">
-        <h1>AutoPrice AI</h1>
-        <p>ML & FastAPI-Powered Car Price Prediction API. Predict vehicle market prices using a machine learning model exposed through a FastAPI backend.</p>
-        <div class="badge-container">
-            <span class="badge">● Machine Learning</span>
-            <span class="badge">● FastAPI</span>
-            <span class="badge">● Prediction API</span>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
 
-def render_prediction_form():
-    st.markdown("""
-    <div class="content-wrapper">
+def format_inr(num: float) -> str:
+    """Indian numbering format: 845000 -> 8,45,000"""
+    num = int(round(num))
+    s = str(num)
+    if len(s) <= 3:
+        return s
+    tail, head = s[-3:], s[:-3]
+    parts = []
+    while len(head) > 2:
+        parts.append(head[-2:])
+        head = head[:-2]
+    parts.append(head)
+    return ",".join(reversed(parts)) + "," + tail
+
+
+# =====================================================================
+# PAGE SECTIONS
+# =====================================================================
+def render_header(is_online: bool) -> None:
+    color = "#4ADE80" if is_online else "#FF7B7B"
+    bg = "rgba(74, 222, 128, 0.10)" if is_online else "rgba(255, 123, 123, 0.10)"
+    border = "rgba(74, 222, 128, 0.35)" if is_online else "rgba(255, 123, 123, 0.35)"
+    label = "API Online" if is_online else "API Offline"
+    st.markdown(
+        f"""
+        <nav class="top-nav">
+            <div class="nav-left">
+                <div class="nav-logo">AutoPrice AI</div>
+                <div class="nav-dev">by <a href="{LINKEDIN_URL}" target="_blank" rel="noopener">{DEVELOPER_NAME}</a></div>
+            </div>
+            <div class="nav-right">
+                <a class="nav-chip" href="{LINKEDIN_URL}" target="_blank" rel="noopener" title="LinkedIn">in</a>
+                <a class="nav-chip" href="{GITHUB_URL}" target="_blank" rel="noopener" title="GitHub">GH</a>
+                <span class="status-badge" style="background:{bg}; border:1px solid {border}; color:{color};">
+                    <span class="pulse" style="background:{color};"></span>{label}
+                </span>
+            </div>
+        </nav>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def render_hero() -> None:
+    st.markdown(
+        """
+        <section class="hero">
+            <h1>AutoPrice AI</h1>
+            <p>ML &amp; FastAPI-Powered Car Price Prediction API. Predict vehicle market
+               prices using a machine learning model exposed through a FastAPI backend.</p>
+            <div class="badge-container">
+                <span class="badge">● Machine Learning</span>
+                <span class="badge">● FastAPI</span>
+                <span class="badge">● Prediction API</span>
+            </div>
+        </section>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def render_prediction_form() -> dict:
+    st.markdown(
+        """
         <h2 class="section-title">Predict Your Car's Market Price</h2>
         <p class="section-subtitle">Enter your vehicle details and get an ML-powered price prediction.</p>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    with st.container():
-        st.markdown('<div class="content-wrapper">', unsafe_allow_html=True)
-        with st.form("prediction_form"):
-            c1, c2 = st.columns(2)
-            with c1:
-                brand = st.text_input("Brand / Make", value="Maruti")
-                model = st.text_input("Model", value="Swift")
-                year = st.number_input("Year", min_value=1990, max_value=2026, value=2018)
-                kms = st.number_input("Kilometers Driven", min_value=0, value=45000, step=1000)
-                fuel = st.selectbox("Fuel Type", ["Petrol", "Diesel", "CNG"])
-            with c2:
-                trans = st.selectbox("Transmission", ["Manual", "Automatic"])
-                engine = st.text_input("Engine / CC", value="1197 CC")
-                mileage = st.text_input("Mileage", value="16.0 km/l")
-                owner_label = st.selectbox("Number of Owners", ["0 (First Owner)", "1 (Second Owner)", "3 (Third Owner)"])
-                location = st.text_input("Location", value="Delhi")
-                
-            st.markdown("<hr style='border: 1px solid rgba(255,255,255,0.05); margin: 24px 0;'>", unsafe_allow_html=True)
-            st.markdown("<p style='color: #94a3b8; font-size: 0.9rem; margin-bottom: 16px;'>Additional Market Details (Required by ML Model)</p>", unsafe_allow_html=True)
-            
-            c3, c4 = st.columns(2)
-            with c3:
-                present_price = st.number_input("Current Ex-Showroom Price (Lakhs)", min_value=0.0, value=6.5, step=0.1)
-            with c4:
-                seller_type = st.selectbox("Seller Type", ["Dealer", "Individual"])
-                
-            submitted = st.form_submit_button("⚡ Predict Car Price", use_container_width=True)
-        st.markdown('</div>', unsafe_allow_html=True)
-        
-    return submitted, brand, model, year, kms, fuel, trans, owner_label, present_price, seller_type
+        """,
+        unsafe_allow_html=True,
+    )
 
-def render_prediction_result(result):
-    st.markdown('<div class="content-wrapper">', unsafe_allow_html=True)
-    if result["success"]:
-        pred_price = result["data"].get("prediction_price", result["data"].get("prediction", 0))
-        st.markdown(f"""
-        <div class="glass-card" style="text-align: center; margin-top: 24px;">
-            <h3 style="color: #94a3b8; letter-spacing: 2px; font-size: 0.9rem; margin-bottom: 0; text-transform: uppercase;">Estimated Market Price</h3>
-            <div class="result-price">₹ {pred_price:,.2f} Lakhs</div>
+    with st.form("prediction_form"):
+        c1, c2 = st.columns(2, gap="large")
+        with c1:
+            brand = st.text_input("Brand / Make", value="Maruti")
+            model = st.text_input("Model", value="Swift")
+            year = st.number_input("Year", min_value=1990, max_value=2026, value=2018, step=1)
+            kms = st.number_input("Kilometers Driven", min_value=0, value=45000, step=1000)
+            fuel = st.selectbox("Fuel Type", ["Petrol", "Diesel", "CNG"])
+        with c2:
+            trans = st.selectbox("Transmission", ["Manual", "Automatic"])
+            engine = st.text_input("Engine / CC", value="1197 CC")
+            mileage = st.text_input("Mileage", value="16.0 km/l")
+            owner_label = st.selectbox(
+                "Number of Owners",
+                ["0 (First Owner)", "1 (Second Owner)", "3 (Third Owner)"],
+            )
+            location = st.text_input("Location", value="Delhi")
+
+        st.markdown(
+            "<p style='color:#7C8BA1; font-size:0.82rem; font-weight:600; "
+            "margin:18px 0 10px 0;'>ADDITIONAL MARKET DETAILS (REQUIRED BY ML MODEL)</p>",
+            unsafe_allow_html=True,
+        )
+        c3, c4 = st.columns(2, gap="large")
+        with c3:
+            present_price = st.number_input(
+                "Current Ex-Showroom Price (Lakhs)", min_value=0.0, value=6.5, step=0.1
+            )
+        with c4:
+            seller_type = st.selectbox("Seller Type", ["Dealer", "Individual"])
+
+        submitted = st.form_submit_button("⚡ Predict Car Price", use_container_width=True)
+
+    return {
+        "submitted": submitted,
+        "brand": brand,
+        "model": model,
+        "year": int(year),
+        "kms": int(kms),
+        "fuel": fuel,
+        "trans": trans,
+        "engine": engine,
+        "mileage": mileage,
+        "owner": int(owner_label.split()[0]),
+        "location": location,
+        "present_price": float(present_price),
+        "seller_type": seller_type,
+    }
+
+
+def render_prediction_result(result: dict) -> None:
+    if not result["success"]:
+        handle_api_error(result)
+        return
+
+    data = result.get("data", {})
+    price = data.get("prediction_price", data.get("prediction", data.get("predicted_price")))
+    if price is None:
+        st.markdown(
+            """
+            <div class="error-card">
+                <h3>⚠️ Missing prediction field in API response</h3>
+                <p>The API responded, but no <code>prediction_price</code> key was found.</p>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+        with st.expander("Raw API response"):
+            st.json(data)
+        return
+
+    price = float(price)
+    st.markdown(
+        f"""
+        <div class="glass-card result-card">
+            <p class="result-eyebrow">Estimated Market Price</p>
+            <div class="result-price">₹ {price:,.2f} Lakh</div>
+            <p class="result-sub">≈ ₹ {format_inr(price * 100000)}</p>
             <div class="result-meta">
                 <div class="meta-item">
                     <div class="meta-label">Model Used</div>
@@ -524,7 +636,7 @@ def render_prediction_result(result):
                 </div>
                 <div class="meta-item">
                     <div class="meta-label">Prediction Status</div>
-                    <div class="meta-value" style="color: #00ff88;">Successful</div>
+                    <div class="meta-value" style="color:#4ADE80;">Successful</div>
                 </div>
                 <div class="meta-item">
                     <div class="meta-label">Response Time</div>
@@ -532,176 +644,105 @@ def render_prediction_result(result):
                 </div>
             </div>
         </div>
-        """, unsafe_allow_html=True)
-    else:
-        st.markdown(f"""
-        <div class="error-card">
-            <h3>⚠️ Unable to connect to AutoPrice API</h3>
-            <p style="color: #cbd5e1; margin-bottom: 12px;"><strong>Error:</strong> {result['error']}</p>
-            <p style="color: #94a3b8; margin-bottom: 12px;"><strong>API URL:</strong> <code>{PREDICT_ENDPOINT}</code></p>
-            <p style="color: #94a3b8;"><strong>Suggested Action:</strong> Make sure FastAPI is running on <code>{API_BASE_URL}</code></p>
-        </div>
-        """, unsafe_allow_html=True)
-    st.markdown('</div>', unsafe_allow_html=True)
-
-def render_system_overview():
-    st.markdown("""
-    <div class="content-wrapper" style="margin-top: 60px;">
-        <h2 class="section-title">System Overview</h2>
-        <div class="system-grid">
-            <div class="sys-card">
-                <div class="sys-icon">🟢</div>
-                <div class="sys-title">API Status</div>
-                <div class="sys-value">Online</div>
-            </div>
-            <div class="sys-card">
-                <div class="sys-icon">🧠</div>
-                <div class="sys-title">ML Model</div>
-                <div class="sys-value">Active</div>
-            </div>
-            <div class="sys-card">
-                <div class="sys-icon">⚡</div>
-                <div class="sys-title">Prediction Endpoint</div>
-                <div class="sys-value">POST /predict</div>
-            </div>
-            <div class="sys-card">
-                <div class="sys-icon">🚀</div>
-                <div class="sys-title">Backend</div>
-                <div class="sys-value">FastAPI</div>
-            </div>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-
-def render_ml_section():
-    st.markdown("""
-    <div class="content-wrapper" style="margin-top: 60px;">
-        <h2 class="section-title">Machine Learning</h2>
-        <p class="section-subtitle">AutoPrice AI uses a trained ML model to estimate vehicle prices based on vehicle features.</p>
-        <div class="system-grid">
-            <div class="sys-card">
-                <div class="sys-title">Model</div>
-                <div class="sys-value">Connected ML Model</div>
-            </div>
-            <div class="sys-card">
-                <div class="sys-title">Features</div>
-                <div class="sys-value">Vehicle Specs</div>
-            </div>
-            <div class="sys-card">
-                <div class="sys-title">Inference</div>
-                <div class="sys-value">Real-time</div>
-            </div>
-            <div class="sys-card">
-                <div class="sys-title">API</div>
-                <div class="sys-value">REST / JSON</div>
-            </div>
-            <div class="sys-card">
-                <div class="sys-title">Prediction Type</div>
-                <div class="sys-value">Regression</div>
-            </div>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-
-def render_api_section():
-    req_json = {
-        "Car_Name": "Maruti Swift",
-        "Year": 2018,
-        "Present_Price": 6.5,
-        "Kms_Driven": 45000,
-        "Fuel_Type": "Petrol",
-        "Seller_Type": "Dealer",
-        "Transmission": "Manual",
-        "Owner": 0
-    }
-    json_str = json.dumps(req_json, indent=4)
-    
-    st.markdown(f"""
-    <div class="content-wrapper" style="margin-top: 60px;">
-        <h2 class="section-title">FastAPI Prediction API</h2>
-        <p class="section-subtitle">Interact with the prediction endpoint using JSON payloads.</p>
-        <div class="glass-card">
-            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap;">
-                <span style="background: rgba(0, 255, 136, 0.1); color: #00ff88; padding: 6px 12px; border-radius: 8px; font-weight: 700; font-family: monospace;">POST</span>
-                <span style="font-family: monospace; font-size: 1.1rem; color: #e2e8f0;">/predict</span>
-            </div>
-            <p style="color: #94a3b8; font-size: 0.9rem; margin-bottom: 8px;"><strong>API Base URL:</strong> <code style="background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 4px; color: #00f2fe;">{API_BASE_URL}</code></p>
-            <div class="code-container">
-                <pre>{json_str}</pre>
-            </div>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-
-def render_developer():
-    st.markdown("""
-    <div class="content-wrapper" style="margin-top: 60px;">
-        <h2 class="section-title" style="text-align: center;">Built by Aniket Sharma</h2>
-        <p class="section-subtitle" style="text-align: center;">AI/ML Developer</p>
-        <div class="dev-card">
-            <div class="dev-avatar">👨‍💻</div>
-            <p style="color: #cbd5e1; font-size: 1.1rem; max-width: 500px; margin: 0 auto; line-height: 1.6;">
-                Building Machine Learning, Generative AI, Agentic AI, and API-powered applications.
-            </p>
-            <div class="dev-links">
-                <a href="https://www.linkedin.com/in/aniket-sharma-42a700418" target="_blank" class="dev-btn">LinkedIn ↗</a>
-                <a href="https://github.com/aniket-andyy" target="_blank" class="dev-btn">GitHub ↗</a>
-            </div>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-
-def render_footer():
-    st.markdown("""
-    <div class="glass-footer">
-        <p style="font-size: 1.1rem; color: #e2e8f0; margin-bottom: 8px;"><strong>AutoPrice AI</strong></p>
-        <p style="margin-bottom: 16px;">ML & FastAPI-Powered Car Price Prediction API</p>
-        <p style="margin-bottom: 16px;">Built with Python • Machine Learning • FastAPI • Streamlit</p>
-        <p>Developed by Aniket Sharma</p>
-        <div class="footer-links">
-            <a href="https://www.linkedin.com/in/aniket-sharma-42a700418" target="_blank">LinkedIn</a> | 
-            <a href="https://github.com/aniket-andyy" target="_blank">GitHub</a>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-
-# --- MAIN EXECUTION ---
-def main():
-    st.set_page_config(
-        page_title="AutoPrice AI",
-        page_icon="🚗",
-        layout="wide",
-        initial_sidebar_state="collapsed"
+        """,
+        unsafe_allow_html=True,
     )
-    inject_css()
-    
-    is_online = check_api_health()
-    render_header(is_online)
-    render_hero()
-    
-    submitted, brand, model, year, kms, fuel, trans, owner_label, present_price, seller_type = render_prediction_form()
-    
-    if submitted:
-        owner_val = int(owner_label.split()[0])
-        payload = {
-            "Car_Name": f"{brand} {model}".strip(),
-            "Year": int(year),
-            "Present_Price": float(present_price),
-            "Kms_Driven": int(kms),
-            "Fuel_Type": fuel,
-            "Seller_Type": seller_type,
-            "Transmission": trans,
-            "Owner": owner_val
-        }
-        with st.spinner("Analyzing vehicle data..."):
-            result = predict_car_price(payload)
-        render_prediction_result(result)
-        
-    render_system_overview()
-    render_ml_section()
-    render_api_section()
-    render_developer()
-    render_footer()
 
-if __name__ == "__main__":
-    main()
+
+def render_system_overview(is_online: bool) -> None:
+    api_state = "Online" if is_online else "Offline"
+    api_color = "#4ADE80" if is_online else "#FF7B7B"
+    st.markdown(
+        f"""
+        <div class="section-gap">
+            <h2 class="section-title">System Overview</h2>
+            <div class="info-grid">
+                <div class="info-card">
+                    <span class="info-dot" style="background:{api_color}; box-shadow:0 0 10px {api_color};"></span>
+                    <div class="info-title">API Status</div>
+                    <div class="info-value">{api_state}</div>
+                </div>
+                <div class="info-card">
+                    <span class="info-dot" style="background:#6EA8FF; box-shadow:0 0 10px #6EA8FF;"></span>
+                    <div class="info-title">ML Model</div>
+                    <div class="info-value">Active</div>
+                </div>
+                <div class="info-card">
+                    <span class="info-dot" style="background:#FFD166; box-shadow:0 0 10px #FFD166;"></span>
+                    <div class="info-title">Prediction Endpoint</div>
+                    <div class="info-value">POST /predict</div>
+                </div>
+                <div class="info-card">
+                    <span class="info-dot" style="background:#8F7BFF; box-shadow:0 0 10px #8F7BFF;"></span>
+                    <div class="info-title">Backend</div>
+                    <div class="info-value">FastAPI</div>
+                </div>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def render_ml_section() -> None:
+    st.markdown(
+        """
+        <div class="section-gap">
+            <h2 class="section-title">Machine Learning</h2>
+            <p class="section-subtitle">AutoPrice AI uses a trained ML model to estimate vehicle
+               prices based on vehicle features sent to the FastAPI inference endpoint.</p>
+            <div class="info-grid">
+                <div class="info-card">
+                    <div class="info-title">Model</div>
+                    <div class="info-value">Connected ML Model</div>
+                </div>
+                <div class="info-card">
+                    <div class="info-title">Features</div>
+                    <div class="info-value">8 Vehicle Features</div>
+                </div>
+                <div class="info-card">
+                    <div class="info-title">Inference</div>
+                    <div class="info-value">Real-time</div>
+                </div>
+                <div class="info-card">
+                    <div class="info-title">API</div>
+                    <div class="info-value">REST · JSON</div>
+                </div>
+                <div class="info-card">
+                    <div class="info-title">Prediction Type</div>
+                    <div class="info-value">Price Regression</div>
+                </div>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def render_api_section() -> None:
+    request_example = json.dumps(
+        {
+            "Car_Name": "swift",
+            "Year": 2018,
+            "Present_Price": 6.5,
+            "Kms_Driven": 45000,
+            "Fuel_Type": "Petrol",
+            "Seller_Type": "Dealer",
+            "Transmission": "Manual",
+            "Owner": 0,
+        },
+        indent=4,
+    )
+    response_example = json.dumps({"prediction_price": 4.85}, indent=4)
+    st.markdown(
+        f"""
+        <div class="section-gap">
+            <h2 class="section-title">FastAPI Prediction API</h2>
+            <p class="section-subtitle">The form above sends this exact JSON structure to the backend.</p>
+            <div class="glass-card">
+                <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:14px;">
+                    <span class="method-pill">POST</span>
+                    <span class="endpoint-path">/predict</span>
+                </div>
+                <p style="color:#94A3B8; font-size:0.88rem; margin:0 0 6px 0;">
+                    <strong style="color:#C3CEDD;">API Base URL:
