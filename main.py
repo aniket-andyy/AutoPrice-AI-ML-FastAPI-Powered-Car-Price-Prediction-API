@@ -2,13 +2,13 @@ from dotenv import load_dotenv
 import os
 from fastapi import FastAPI, HTTPException, Query, Path, Depends, Request
 from fastapi.responses import JSONResponse
-from service.products import (
-    get_all_products,
-    add_product,
-    remove_product,
-    change_product,
-    load_products,
-)
+#from service.products import (
+   # get_all_products,
+   # add_product,
+   # remove_product,
+   # change_product,
+    #load_products,
+#)
 from schema.product import Product, ProductUpdate
 from uuid import uuid4, UUID
 from datetime import datetime
